@@ -147,6 +147,9 @@ setup_gcc() {
 		# on 4.4 kernels where global KCFLAGS=-O2 leaks into the host nm call.
 		export PATH="${GCC64_DIR}/bin:${PATH}"
 
+		# Explicitly export NM so vdso/Makefile's `$(NM)` picks the cross one.
+		export NM="${GCC64_DIR}/bin/aarch64-linux-android-nm"
+
 		export_env GCC_64 "CROSS_COMPILE=${GCC64_DIR}/bin/aarch64-linux-android-"
 		endgroup
 	fi
