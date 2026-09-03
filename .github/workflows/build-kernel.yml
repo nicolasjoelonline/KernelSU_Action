@@ -178,9 +178,6 @@ jobs:
       - name: Apply kernel patches
         run: bash scripts/patches.sh all
 
-      - name: Check gcc toolchain
-        run: find kernel_workspace/gcc-64/bin/ -name '*gcc*'
-
       - name: Set up ccache
         if: env.ENABLE_CCACHE == 'true'
         uses: hendrikmuhs/ccache-action@v1.2
