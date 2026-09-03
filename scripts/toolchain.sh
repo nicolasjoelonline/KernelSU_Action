@@ -121,6 +121,17 @@ setup_gcc() {
 		fetch "https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/+archive/refs/tags/${gcc_tag}.tar.gz" \
 			"${WORKSPACE}/gcc-aarch64.tar.gz"
 		extract_archive "${WORKSPACE}/gcc-aarch64.tar.gz" "$GCC64_DIR"
+		# Ensure aarch64-linux-android-gcc exists (some AOSP tags only ship versioned binary)
+		if [ ! -x "${GCC64_DIR}/bin/aarch64-linux-android-gcc" ]; then
+			real_gcc=$(find "${GCC64_DIR}/bin" -name 'aarch64-linux-android-gcc*' -type f -executable -print -quit 2>/dev/null || true)
+			if [ -n "$real_gcc" ]; then
+				ln -sf "$real_gcc" "${GCC64_DIR}/bin/aarch64-linux-android-gcc"
+				echo "linked $real_gcc -> aarch64-linux-android-gcc"
+			else
+				echo "WARNING: no aarch64 gcc found in ${GCC64_DIR}/bin/"
+				ls "${GCC64_DIR}/bin/" | grep -i gcc || true
+			fi
+		fi
 		export_env GCC_64 "CROSS_COMPILE=${GCC64_DIR}/bin/aarch64-linux-android-"
 		endgroup
 	fi
