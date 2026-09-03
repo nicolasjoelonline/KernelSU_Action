@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # Prepare the defconfig and compile the kernel.
 
-#!/usr/bin/env bash
-# Prepare the defconfig and compile the kernel.
 
 set -euo pipefail
 # shellcheck source=scripts/lib.sh
