@@ -129,7 +129,7 @@ setup_gcc() {
 				echo "linked $real_gcc -> aarch64-linux-android-gcc"
 			else
 				echo "WARNING: no aarch64 gcc found in ${GCC64_DIR}/bin/"
-				ls "${GCC64_DIR}/bin/" | grep -i gcc || true
+				find "${GCC64_DIR}/bin" -name '*gcc*' -type f 2>/dev/null || echo "  (no gcc binaries at all)"
 			fi
 		fi
 		export_env GCC_64 "CROSS_COMPILE=${GCC64_DIR}/bin/aarch64-linux-android-"
