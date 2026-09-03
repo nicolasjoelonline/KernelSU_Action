@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Prepare the defconfig and compile the kernel.
 
+#!/usr/bin/env bash
+# Prepare the defconfig and compile the kernel.
+
 set -euo pipefail
 # shellcheck source=scripts/lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=scripts/kernelsu.sh
 . "$(dirname "${BASH_SOURCE[0]}")/kernelsu.sh"
-# shellcheck source=scripts/install_kernelsu.sh
-. "$(dirname "${BASH_SOURCE[0]}")/install_kernelsu.sh"
 # shellcheck source=scripts/patches.sh
 . "$(dirname "${BASH_SOURCE[0]}")/patches.sh"
 
