@@ -1,3 +1,6 @@
+name: Check gcc toolchain
+        run: ls kernel_workspace/gcc-64/bin/ | grep gcc
+        
 name: Build Kernel
 
 on:
