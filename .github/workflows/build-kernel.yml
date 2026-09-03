@@ -179,7 +179,7 @@ jobs:
         run: bash scripts/patches.sh all
 
       - name: Check gcc toolchain
-        run: ls kernel_workspace/gcc-64/bin/ | grep gcc  
+        run: find kernel_workspace/gcc-64/bin/ -name '*gcc*'
 
       - name: Set up ccache
         if: env.ENABLE_CCACHE == 'true'
