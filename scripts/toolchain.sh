@@ -132,6 +132,22 @@ setup_gcc() {
 				find "${GCC64_DIR}/bin" -name '*gcc*' -type f 2>/dev/null || echo "  (no gcc binaries at all)"
 			fi
 		fi
+
+		# ---- VDSO nm fix (msm8998 4.4) ----
+		# Expose the cross nm as a bare "nm" on PATH *before* /usr/bin/nm,
+		# so the kernel's vDSO gen_vdso_offsets.sh / cmd_vdsosym hits the
+		# cross nm instead of the host nm. The host nm chokes on the -O2
+		# that global KCFLAGS injects ("invalid option -- 'O'").
+		# Requires ${GCC64_DIR}/bin to be at the *front* of PATH in the
+		# kernel build step (see scripts/build_kernel.sh).
+		if [ -x "${GCC64_DIR}/bin/aarch64-linux-android-nm" ]; then
+			ln -sf "${GCC64_DIR}/bin/aarch64-linux-android-nm" "${GCC64_DIR}/bin/nm"
+			echo "linked aarch64-linux-android-nm -> nm (VDSO fix)"
+		else
+			echo "WARNING: no aarch64 nm found; VDSO build may fail"
+		fi
+		# ----------------------------------
+
 		export_env GCC_64 "CROSS_COMPILE=${GCC64_DIR}/bin/aarch64-linux-android-"
 		endgroup
 	fi
