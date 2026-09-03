@@ -21,6 +21,43 @@ OUT="${KERNEL_DIR}/out"
 
 DEFCONFIG_PATH="${KERNEL_DIR}/arch/${ARCH}/configs/${KERNEL_CONFIG}"
 
+# ----------------------------------------------------- ksu hook configs ----
+# Inline fallback: normally provided by install_kernelsu.sh / kernelsu.sh.
+# Defined here so this file is self-contained regardless of which helper
+# script is sourced.
+ksu_hook_configs() {
+	local variant=$1 mode=$2 defconfig=$3 kver=$4
+	case "$variant" in
+		sukisu-ultra | resukisu)
+			case "$mode" in
+				manual)
+					# ReSukiSU's non-GKI static export check requires the complete
+					# kallsyms table unless every internal SELinux symbol is exported
+					# manually by the vendor tree.
+					kconf_set_many "$defconfig" \
+						CONFIG_KSU_MANUAL_HOOK=y CONFIG_DEBUG_KERNEL=y \
+						CONFIG_KALLSYMS=y CONFIG_KALLSYMS_ALL=y
+					;;
+				*)
+					kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK
+					;;
+			esac
+			;;
+		kernelsu-next)
+			case "$mode" in
+				manual) kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK ;;
+				kprobes) kconf_enable "$defconfig" CONFIG_KSU_KPROBES_HOOK ;;
+				*) ;;
+			esac
+			;;
+		kernelsu)
+			# tiann/KernelSU 0.9.x infers manual hooks from the source patch
+			;;
+		*)
+			;;
+	esac
+}
+
 # ------------------------------------------------------------- defconfig ---
 
 prepare_defconfig() {
