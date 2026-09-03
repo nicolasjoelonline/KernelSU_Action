@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 # Prepare the defconfig and compile the kernel.
 
-
 set -euo pipefail
 # shellcheck source=scripts/lib.sh
 . "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 # shellcheck source=scripts/kernelsu.sh
 . "$(dirname "${BASH_SOURCE[0]}")/kernelsu.sh"
-# shellcheck source=scripts/install_kernelsu.sh
-. "$(dirname "${BASH_SOURCE[0]}")/install_kernelsu.sh"
 # shellcheck source=scripts/patches.sh
 . "$(dirname "${BASH_SOURCE[0]}")/patches.sh"
 
@@ -19,44 +16,38 @@ OUT="${KERNEL_DIR}/out"
 
 DEFCONFIG_PATH="${KERNEL_DIR}/arch/${ARCH}/configs/${KERNEL_CONFIG}"
 
-# ----------------------------------------------------- ksu hook configs ----
-# Inline fallback: normally provided by install_kernelsu.sh / kernelsu.sh.
-# Defined here so this file is self-contained regardless of which helper
-# script is sourced.
+# ------------------------------------------------------------- defconfig ---
+
+# Inline fallback for ksu_hook_configs()
+# Normally this function is defined in install_kernelsu.sh or kernelsu.sh.
+# We define it here so build.sh is self-contained and does not rely on
+# an external helper script that may be missing or renamed.
 ksu_hook_configs() {
 	local variant=$1 mode=$2 defconfig=$3 kver=$4
+
 	case "$variant" in
-		sukisu-ultra | resukisu)
-			case "$mode" in
-				manual)
-					# ReSukiSU's non-GKI static export check requires the complete
-					# kallsyms table unless every internal SELinux symbol is exported
-					# manually by the vendor tree.
-					kconf_set_many "$defconfig" \
-						CONFIG_KSU_MANUAL_HOOK=y CONFIG_DEBUG_KERNEL=y \
-						CONFIG_KALLSYMS=y CONFIG_KALLSYMS_ALL=y
-					;;
-				*)
-					kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK
-					;;
-			esac
+		sukisu-ultra|resukisu)
+			if [ "$mode" = "manual" ]; then
+				# Manual hook requires complete kallsyms and debug kernel
+				kconf_set_many "$defconfig" \
+					CONFIG_KSU_MANUAL_HOOK=y CONFIG_DEBUG_KERNEL=y \
+					CONFIG_KALLSYMS=y CONFIG_KALLSYMS_ALL=y
+			else
+				kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK
+			fi
 			;;
 		kernelsu-next)
-			case "$mode" in
-				manual) kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK ;;
-				kprobes) kconf_enable "$defconfig" CONFIG_KSU_KPROBES_HOOK ;;
-				*) ;;
-			esac
+			if [ "$mode" = "manual" ]; then
+				kconf_enable "$defconfig" CONFIG_KSU_MANUAL_HOOK
+			elif [ "$mode" = "kprobes" ]; then
+				kconf_enable "$defconfig" CONFIG_KSU_KPROBES_HOOK
+			fi
 			;;
-		kernelsu)
-			# tiann/KernelSU 0.9.x infers manual hooks from the source patch
-			;;
-		*)
+		kernelsu|*)
+			# tiann/KernelSU 0.9.x auto-detects from the patch
 			;;
 	esac
 }
-
-# ------------------------------------------------------------- defconfig ---
 
 prepare_defconfig() {
 	group "Preparing defconfig"
@@ -110,7 +101,7 @@ prepare_defconfig() {
 			[ -n "$kv" ] || continue
 			case "$kv" in
 				*=*) kconf_set "$DEFCONFIG_PATH" "${kv%%=*}" "${kv#*=}" ;;
-				*)   warn "ignoring malformed EXTRA_DEFCONFIG entry '${kv}' (want CONFIG_X=y)" ;;
+				*)   warn "ignoring malformed EXTRA_DEFCONFIG entry '${kv}' (want CONFIG_x=y)" ;;
 			esac
 		done
 	fi
